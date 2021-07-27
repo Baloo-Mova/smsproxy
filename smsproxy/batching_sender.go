@@ -1,8 +1,9 @@
 package smsproxy
 
 import (
-	"gitlab.com/devskiller-tasks/messaging-app-golang/fastsmsing"
 	"sync"
+
+	"gitlab.com/devskiller-tasks/messaging-app-golang/fastsmsing"
 )
 
 type batchingClient interface {
@@ -35,6 +36,25 @@ type simpleBatchingClient struct {
 }
 
 func (b *simpleBatchingClient) send(message SendMessage, ID MessageID) error {
+
+	// defer b.lock.Unlock()
+
+	// err := b.repository.save(ID)
+
+	// if err != nil {
+	// 	return err
+	// }
+
+	// b.lock.Lock()
+	// b.messagesToSend = append(b.messagesToSend, fastsmsing.Message{PhoneNumber: message.PhoneNumber, Message: message.Message, MessageID: ID})
+
+	// if len(b.messagesToSend) >= b.config.minimumInBatch {
+	// 	status := b.client.Send(b.messagesToSend)
+	// 	if status != nil {
+	// 		return status
+	// 	}
+	// }
+
 	return nil
 }
 

@@ -1,6 +1,7 @@
 package smsproxy
 
 import (
+	"errors"
 	"sync"
 )
 
@@ -16,16 +17,53 @@ type inMemoryRepository struct {
 }
 
 func (r *inMemoryRepository) save(id MessageID) error {
+
+	r.lock.Lock()
+
+	defer r.lock.Unlock()
+
+	_, hasValue := r.db[id]
+	if hasValue {
+		return errors.New("Key already Exists")
+	}
+
+	r.db[id] = Accepted
+
 	// save given MessageID with ACCEPTED status. If given MessageID already exists, return an error
 	return nil
 }
 
 func (r *inMemoryRepository) get(id MessageID) (MessageStatus, error) {
+
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	val, status := r.db[id]
+	if !status {
+		return NotFound, errors.New("Key not foud")
+	}
+
 	// return status of given message, by it's MessageID. If not found, return NOT_FOUND status
-	return "", nil
+	return val, nil
 }
 
 func (r *inMemoryRepository) update(id MessageID, newStatus MessageStatus) error {
+
+	r.lock.Lock()
+
+	defer r.lock.Unlock()
+
+	key, status := r.db[id]
+
+	if !status || key != Accepted {
+		return errors.New("Message is not in ACCEPTED state")
+	}
+
+	if key == Failed || key == Delivered {
+		return errors.New("The final statuses are cannot be overwritten")
+	}
+
+	r.db[id] = newStatus
 	// Set new status for a given message.
 	// If message is not in ACCEPTED state already - return an error.
 	// If current status is FAILED or DELIVERED - don't update it and return an error. Those are final statuses and cannot be overwritten.
