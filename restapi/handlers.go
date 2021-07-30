@@ -2,16 +2,63 @@ package restapi
 
 import (
 	"encoding/json"
-	"github.com/google/uuid"
-	"github.com/pkg/errors"
-	"gitlab.com/devskiller-tasks/messaging-app-golang/smsproxy"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
+	"gitlab.com/devskiller-tasks/messaging-app-golang/smsproxy"
 )
 
 func sendSmsHandler(smsProxy smsproxy.SmsProxy) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+
+		body, err := ioutil.ReadAll(request.Body)
+		if err != nil {
+			handleError(writer, http.StatusBadRequest, err)
+			return
+		}
+
+		smsRequest := &SendSmsRequest{}
+
+		err = json.Unmarshal(body, smsRequest)
+
+		if err != nil {
+			handleError(writer, http.StatusBadRequest, err)
+			return
+		}
+
+		sendingResult, err := smsProxy.Send(smsproxy.SendMessage{Message: smsRequest.Content, PhoneNumber: smsRequest.PhoneNumber})
+
+		if err != nil {
+			switch err.(type) {
+			case *smsproxy.ValidationError:
+				handleError(writer, http.StatusBadRequest, err)
+				return
+			default:
+				handleError(writer, http.StatusInternalServerError, err)
+				return
+			}
+
+		}
+
+		responseBody, err := json.Marshal(sendingResult)
+		writer.WriteHeader(http.StatusAccepted)
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			_, _ = writer.Write([]byte("Error serializing response"))
+			return
+		}
+
+		_, err = writer.Write(responseBody)
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			_, _ = writer.Write([]byte("Error writing HTTP response"))
+			return
+		}
+
 		// HINT: you can use `handleError()` function when handling any error
 		// 1. read SendSmsRequest from request. If error occurs, return HTTP Status 400
 		// 2. try sending an SMS using `smsProxy.Send(...)`

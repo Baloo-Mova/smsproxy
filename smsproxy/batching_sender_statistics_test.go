@@ -3,10 +3,11 @@ package smsproxy
 import (
 	"errors"
 	"fmt"
-	"github.com/stretchr/testify/require"
-	"gitlab.com/devskiller-tasks/messaging-app-golang/fastsmsing"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
+	"gitlab.com/devskiller-tasks/messaging-app-golang/fastsmsing"
 )
 
 func TestSendingStatisticsOnFirstSuccess(t *testing.T) {

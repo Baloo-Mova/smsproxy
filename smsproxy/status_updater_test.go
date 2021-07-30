@@ -2,10 +2,11 @@ package smsproxy
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
-	"gitlab.com/devskiller-tasks/messaging-app-golang/fastsmsing"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
+	"gitlab.com/devskiller-tasks/messaging-app-golang/fastsmsing"
 )
 
 func TestUpdatesStatusOfSms(t *testing.T) {

@@ -40,7 +40,7 @@ func (r *inMemoryRepository) get(id MessageID) (MessageStatus, error) {
 
 	val, status := r.db[id]
 	if !status {
-		return NotFound, errors.New("Key not foud")
+		return NotFound, nil
 	}
 
 	// return status of given message, by it's MessageID. If not found, return NOT_FOUND status
@@ -55,12 +55,12 @@ func (r *inMemoryRepository) update(id MessageID, newStatus MessageStatus) error
 
 	key, status := r.db[id]
 
-	if !status || key != Accepted {
-		return errors.New("Message is not in ACCEPTED state")
+	if !status {
+		return errors.New("Message not found")
 	}
 
 	if key == Failed || key == Delivered {
-		return errors.New("The final statuses are cannot be overwritten")
+		return errors.New("Final statuses cannot be overwritten")
 	}
 
 	r.db[id] = newStatus

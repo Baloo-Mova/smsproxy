@@ -2,12 +2,13 @@ package smsproxy
 
 import (
 	"errors"
-	"github.com/stretchr/testify/require"
-	"gitlab.com/devskiller-tasks/messaging-app-golang/fastsmsing"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gitlab.com/devskiller-tasks/messaging-app-golang/fastsmsing"
 )
-import "github.com/stretchr/testify/assert"
 
 func TestSmsIsAccepted(t *testing.T) {
 	// given

@@ -2,6 +2,7 @@ package smsproxy
 
 import (
 	"fmt"
+
 	"gitlab.com/devskiller-tasks/messaging-app-golang/fastsmsing"
 )
 
@@ -28,6 +29,23 @@ func (u statusUpdater) Start() {
 	// When started, statusUpdater should continue reading from statusUpdater.C channel, where updates will be delivered, and save them using repository.update(...)
 	// fastssmsing.MessageStatus should be mapped to smsproxy.MessageStatus using `mapToInternalStatus` function before updating state using repository.update(...)
 	// When mapping to internal status fails, or updating status using repository.update(...) fails - you should asynchronously send statusUpdateError to statusUpdater.Errors channel
+	go func() {
+		for status := range u.C {
+			for key, mStatus := range status {
+				mappedStatus, err := mapToInternalStatus(mStatus)
+				if err == nil {
+					err = u.repository.update(key, mappedStatus)
+
+				}
+
+				if err != nil {
+					go func() {
+						u.Errors <- statusUpdateError{err: err, messageID: key, status: mStatus}
+					}()
+				}
+			}
+		}
+	}()
 }
 
 func mapToInternalStatus(status fastsmsing.MessageStatus) (MessageStatus, error) {

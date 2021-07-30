@@ -37,23 +37,32 @@ type simpleBatchingClient struct {
 
 func (b *simpleBatchingClient) send(message SendMessage, ID MessageID) error {
 
-	// defer b.lock.Unlock()
+	err := b.repository.save(ID)
 
-	// err := b.repository.save(ID)
+	if err != nil {
+		return err
+	}
 
-	// if err != nil {
-	// 	return err
-	// }
+	b.lock.Lock()
+	defer b.lock.Unlock()
 
-	// b.lock.Lock()
-	// b.messagesToSend = append(b.messagesToSend, fastsmsing.Message{PhoneNumber: message.PhoneNumber, Message: message.Message, MessageID: ID})
+	b.messagesToSend = append(b.messagesToSend, fastsmsing.Message{PhoneNumber: message.PhoneNumber, Message: message.Message, MessageID: ID})
+	if len(b.messagesToSend) >= b.config.minimumInBatch {
 
-	// if len(b.messagesToSend) >= b.config.minimumInBatch {
-	// 	status := b.client.Send(b.messagesToSend)
-	// 	if status != nil {
-	// 		return status
-	// 	}
-	// }
+		go func(messages []fastsmsing.Message) {
+			var err error = nil
+			for i := 0; i < calculateMaxAttempts(b.config.maxAttempts); i++ {
+				err = b.client.Send(messages)
+				if err == nil {
+					break
+				}
+			}
+
+			sendStatistics(messages, err, b.config.maxAttempts, b.config.maxAttempts, b.statistics)
+		}(b.messagesToSend)
+
+		b.messagesToSend = make([]fastsmsing.Message, 0)
+	}
 
 	return nil
 }

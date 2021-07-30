@@ -3,8 +3,6 @@ package restapi
 import (
 	"context"
 	"fmt"
-	"gitlab.com/devskiller-tasks/messaging-app-golang/fastsmsing"
-	"gitlab.com/devskiller-tasks/messaging-app-golang/smsproxy"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +10,9 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"gitlab.com/devskiller-tasks/messaging-app-golang/fastsmsing"
+	"gitlab.com/devskiller-tasks/messaging-app-golang/smsproxy"
 )
 
 type SmsApp struct {
